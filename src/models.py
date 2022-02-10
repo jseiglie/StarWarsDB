@@ -14,6 +14,7 @@ class User(Base):
     email = Column(String(120), unique=True, nullable=False)
     password = Column(String(80), unique=False, nullable=False)
     is_active = Column(Boolean(), unique=False, nullable=False)
+    Children = relationship('Planets')
 
     def __repr__(self):
         return '<User %r>' % self.email
@@ -40,7 +41,8 @@ class Planets(Base):
     url = Column(String, nullable=False) 
     movies = Column(String, nullable=False)           
     favorite = Column(Boolean, nullable=False)            
-            
+    parent_id = Column(Integer, ForeignKey('User.id'))            
+    
     def __repr__(self):
         return '<Planet %r>' % self.name
 
