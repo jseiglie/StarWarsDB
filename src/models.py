@@ -1,6 +1,6 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -8,13 +8,22 @@ from eralchemy import render_er
 
 Base = declarative_base()
 
+association_table = Table('association', Base.metadata,
+    Column('User', String, ForeignKey('user.id'), primary_key=True),
+    Column('Planet', String, ForeignKey('planet.id'), primary_key=True),
+    Column('Movies', String, ForeignKey('movies.id'), primary_key=True),
+    Column('People', String, ForeignKey('people.id'), primary_key=True),
+)
+
 class User(Base):
     __tablename__ = 'User'
     id = Column(Integer, primary_key=True)
     email = Column(String(120), unique=True, nullable=False)
     password = Column(String(80), unique=False, nullable=False)
     is_active = Column(Boolean(), unique=False, nullable=False)
-    Children = relationship('Planets')
+    children = relationship('Planets', secondary=association_table, backref='User')
+    children1 = relationship('People', secondary=association_table, backref='User')
+    children2 = relationship('Movies', secondary=association_table, backref='User')
 
     def __repr__(self):
         return '<User %r>' % self.email
@@ -27,7 +36,7 @@ class User(Base):
         }
 
 class Planets(Base):
-    __tablename__ = 'Planet'
+    __tablename__ = 'planet'
     id = Column(Integer, primary_key = True)
     name = Column(String, nullable=False)
     diameter = Column(Integer, nullable=False)
@@ -64,7 +73,7 @@ class Planets(Base):
         }    
 
 class People(Base):
-    __tablename__ = 'People'
+    __tablename__ = 'people'
     id = Column(Integer, primary_key = True)
     name = Column(String, nullable=False)
     gender = Column(String, nullable=False)
@@ -78,6 +87,7 @@ class People(Base):
     url = Column(String, nullable=False)
     movies = Column(String, nullable=False)
     favorite = Column(Boolean, nullable=False)
+    parent_id = Column(Integer, ForeignKey('User.id'))            
 
     def __repr__(self):
         return '<People %r>' % self.name
@@ -99,10 +109,12 @@ class People(Base):
         }
 
 class Movies(Base):
-    __tablename__ = 'Movies'
+    __tablename__ = 'movies'
     id = Column(Integer, primary_key = True)
     title = Column(String, nullable=False)
     year  = Column(Integer, nullable=False)
+    favorite = Column(Boolean)
+    parent_id = Column(Integer, ForeignKey('User.id'))            
 
     def __repr__(self):
         return '<Movies %r>' % self.title
@@ -113,24 +125,6 @@ class Movies(Base):
             'year': self.year,
         }
 
-class Favorites(Base):
-    __tablename__ = 'Favorites'
-    id = Column(Integer, primary_key = True)
-    people = Column(String, nullable=False)
-    planet = Column(String, nullable=False)
-    movie =  Column(String, nullable=False)
-    favorite = Column(Boolean, nullable=False)
-
-    def __repr__(self):
-        return '<Favorites %r>' % self.id
-
-    def serialize(self):
-        return {
-            'people': self.people,
-            'planet': self.planet,
-            'movie': self.movie,
-            'favorite': self.favorite,
-        }
 
 
 # class Address(Base):
